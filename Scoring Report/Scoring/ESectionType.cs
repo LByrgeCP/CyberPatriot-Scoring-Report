@@ -19,7 +19,9 @@
         Services,
         Features,
         Forensics,
-        Registry,
+        CustomRegistry,
+        CustomProcessOutput,
+        CustomFiles,
         Other = 99,
     }
 }

@@ -1,71 +1,54 @@
 ﻿using Configuration_Tool.Controls.Comparisons;
-using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 
-namespace Configuration_Tool.Controls.CustomRegistry
+namespace Configuration_Tool.Controls.CustomProcesses
 {
     /// <summary>
-    /// Interaction logic for ControlCustomRegistryValue.xaml
+    /// Interaction logic for ControlCustomProcessOutput.xaml
     /// </summary>
-    public partial class ControlCustomRegistryValue : UserControl
+    public partial class ControlCustomProcessOutput : System.Windows.Controls.UserControl
     {
-        public ControlCustomRegistryValue()
+        public string CustomOutput
         {
-            InitializeComponent();
-        }
-
-        public static List<string> HivesNames => new List<string>(Hives.Keys);
-
-        public static Dictionary<string, RegistryHive> Hives = new Dictionary<string, RegistryHive>()
-        {
-            { "Classes Root", RegistryHive.ClassesRoot },
-            { "Current User", RegistryHive.CurrentUser },
-            { "Local Machine", RegistryHive.LocalMachine },
-            { "Users", RegistryHive.Users },
-            { "Performance Data", RegistryHive.PerformanceData },
-            { "Current Config", RegistryHive.CurrentConfig },
-            { "Dynamic Data", RegistryHive.DynData },
-        };
-
-        public RegistryHive Hive
-        {
-            get { return Hives[(string)comboBoxHive.SelectedItem]; }
+            get { return txtCustomOutput.Text; }
             set
             {
-                foreach (KeyValuePair<string, RegistryHive> pairs in Hives)
-                {
-                    if (pairs.Value == value)
-                    {
-                        comboBoxHive.SelectedItem = pairs.Key;
-                        break;
-                    }
-                }
+                txtCustomOutput.Text = value;
             }
         }
 
-        public string KeyPath
+        public string Path
         {
-            get { return txtKeyPath.Text; }
+            get { return txtPath.Text; }
             set
             {
-                txtKeyPath.Text = value;
+                txtPath.Text = value;
             }
         }
 
-        public string ValueName
+        public string Arguments
         {
-            get { return txtValueName.Text; }
+            get { return txtArguments.Text; }
             set
             {
-                txtValueName.Text = value;
+                txtArguments.Text = value;
             }
         }
 
-        public bool ValueEquals
+        public int Timeout
+        {
+            get { return numericTimeout.Number; }
+            set
+            {
+                numericTimeout.Number = value;
+            }
+        }
+
+        public bool Matches
         {
             get
             {
@@ -77,17 +60,6 @@ namespace Configuration_Tool.Controls.CustomRegistry
             set
             {
                 checkBoxMatches.IsChecked = value;
-            }
-        }
-
-        public ItemCollection Comparisons => itemsComparisons.Items;
-
-        public string CustomOutput
-        {
-            get { return txtCustomOutput.Text; }
-            set
-            {
-                txtCustomOutput.Text = value;
             }
         }
 
@@ -106,18 +78,41 @@ namespace Configuration_Tool.Controls.CustomRegistry
             }
         }
 
-        public static ControlCustomRegistryValue Parse(BinaryReader reader)
+        public ItemCollection Comparisons => itemsComparisons.Items;
+
+        private void btnBrowseFile_Click(object sender, RoutedEventArgs e)
+        {
+            using (OpenFileDialog dialog = new OpenFileDialog())
+            {
+                dialog.FileName = Path;
+                dialog.Filter = "All Files|*.*";
+                dialog.Multiselect = false;
+
+                DialogResult result = dialog.ShowDialog();
+
+                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(dialog.FileName))
+                {
+                    Path = dialog.FileName;
+                }
+            }
+        }
+
+        public ControlCustomProcessOutput()
+        {
+            InitializeComponent();
+        }
+
+        public static ControlCustomProcessOutput Parse(BinaryReader reader)
         {
             // Create instance of policy storage
-            ControlCustomRegistryValue registryKey = new ControlCustomRegistryValue();
+            ControlCustomProcessOutput processOutput = new ControlCustomProcessOutput();
 
-            // Read registry identifing fields
-            registryKey.Hive = (RegistryHive)reader.ReadInt32();
-            registryKey.KeyPath = reader.ReadString();
-            registryKey.ValueName = reader.ReadString();
+            processOutput.Path = reader.ReadString();
+            processOutput.Arguments = reader.ReadString();
+            processOutput.Timeout = reader.ReadInt32();
 
             // Read comparison values
-            registryKey.ValueEquals = reader.ReadBoolean();
+            processOutput.Matches = reader.ReadBoolean();
 
             int comparisonCount = reader.ReadInt32();
 
@@ -142,23 +137,24 @@ namespace Configuration_Tool.Controls.CustomRegistry
                 comparison.Load(reader);
 
                 // Add comparison to list
-                registryKey.Comparisons.Add(comparison);
+                processOutput.Comparisons.Add(comparison);
             }
 
             // Read scoring values
-            registryKey.CustomOutput = reader.ReadString();
-            registryKey.IsScored = reader.ReadBoolean();
+            processOutput.CustomOutput = reader.ReadString();
+            processOutput.IsScored = reader.ReadBoolean();
 
-            return registryKey;
+            return processOutput;
         }
 
         public void Write(BinaryWriter writer)
         {
             // Write properties
-            writer.Write((Int32)Hive);
-            writer.Write(KeyPath);
-            writer.Write(ValueName);
-            writer.Write(ValueEquals);
+            writer.Write(Path);
+            writer.Write(Arguments);
+            writer.Write(Timeout);
+
+            writer.Write(Matches);
 
             writer.Write(Comparisons.Count);
             foreach (IComparison comparison in Comparisons)
@@ -171,17 +167,17 @@ namespace Configuration_Tool.Controls.CustomRegistry
             writer.Write(IsScored);
         }
 
-        private void btnAddSimple_Click(object sender, RoutedEventArgs e)
+        private void btnAddTextMatch_Click(object sender, RoutedEventArgs e)
         {
             itemsComparisons.Items.Add(new ControlComparisonSimple());
         }
 
-        private void btnAddRegex_Click(object sender, RoutedEventArgs e)
+        private void btnAddRegexMatch_Click(object sender, RoutedEventArgs e)
         {
             itemsComparisons.Items.Add(new ControlComparisonRegex());
         }
 
-        private void btnAddRange_Click(object sender, RoutedEventArgs e)
+        private void btnAddExitCodeRange_Click(object sender, RoutedEventArgs e)
         {
             itemsComparisons.Items.Add(new ControlComparisonRange());
         }

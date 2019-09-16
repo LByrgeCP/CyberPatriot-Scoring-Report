@@ -107,6 +107,12 @@ namespace Translation_Editor
             { "SectionCustomRegistry", "Custom Registry:" },
             { "RegistryKeyCustomOutput", "{0}" },
 
+            { "SectionCustomProcessOutput", "Custom Processes:" },
+            { "ProcessCustomOutput", "{0}" },
+
+            { "SectionCustomFiles", "Custom Files:" },
+            { "CustomFilesCustomOutput", "{0}" },
+
             { "SectionOther",   "Other:" },
             { "RemoteDesktop",  "Remote Desktop allowance set correctly - {0}" },
             { "HostFile",       "Host file contains only default entries" },
@@ -121,9 +127,9 @@ namespace Translation_Editor
 
         public static readonly string DefaultTranslationsPath = Path.Combine(DefaultTranslationsDirectory, DefaultTranslationsFile);
 
-        public static string CurrentTranslationsDirectory { get; private set; } = "";
+        public static string CurrentTranslationsDirectory { get; private set; } = DefaultTranslationsDirectory;
 
-        public static string CurrentTranslationsPath { get; private set; } = "";
+        public static string CurrentTranslationsPath { get; private set; } = DefaultTranslationsPath;
 
         public static byte[] DefaultTranslationsBytes { get; set; } = null;
 

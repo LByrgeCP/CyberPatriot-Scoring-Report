@@ -1,18 +1,10 @@
 Total Project:
 	Add update checking
 
-	Add Scored Sections:
-	-Custom process output checks
-	-Regex file checking
-
 Configuration Tool:
-	Fix some consistencies with naming
 
 Scoring Report:
 	Optimization: Unload configurations which are not scored (not implemented prior to user rights)
-
-	Known Bugs:
-	-Running scoring report with running Translation Editor first will result in no translations
 
 Translation Editor:
 	Add ability to edit Security Options translations, etc.
